@@ -1,0 +1,62 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "Key System", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+
+_G.Key = "ENTER KEY"
+_G.KeyInput = "string"
+
+function MakeScriptHub()
+   print("EnteredCorrectKey")
+   OrionLib:Destroy()
+--[[
+Name = <string> - The name of the UI.
+HidePremium = <bool> - Whether or not the user details shows Premium status or not.
+SaveConfig = <bool> - Toggles the config saving in the UI.
+ConfigFolder = <string> - The name of the folder where the configs are saved.
+IntroEnabled = <bool> - Whether or not to show the intro animation.
+IntroText = <string> - Text to show in the intro animation.
+IntroIcon = <string> - URL to the image you want to use in the intro animation.
+Icon = <string> - URL to the image you want displayed on the window.
+CloseCallback = <function> - Function to execute when the window is closed.
+]]
+
+local Tab = Window:MakeTab({
+	Name = "Main",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+--[[
+Name = <string> - The name of the tab.
+Icon = <string> - The icon of the tab.
+PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
+]]
+
+Tab:AddTextbox({
+	Name = "Enter Key",
+	Default = "",
+	TextDisappear = true,
+	Callback = function(Value)
+		  _G.KeyInput = Value
+	end	  
+})
+
+--[[
+Name = <string> - The name of the textbox.
+Default = <string> - The default value of the textbox.
+TextDisappear = <bool> - Makes the text disappear in the textbox after losing focus.
+Callback = <function> - The function of the textbox.
+]]
+Tab:AddButton({
+	Name = "Check Key",
+	Callback = function()
+      		   if _G.KeyInput == _G.Key then
+       MakeScriptHub()
+   end
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]
