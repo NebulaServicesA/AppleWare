@@ -6,7 +6,7 @@ _G.Key = "ENTER KEY"
 _G.KeyInput = "string"
 
 function MakeScriptHub()
-   print("EnteredCorrectKey")
+   print("ENTER YOUR SCRIPT BELLOWW")
    OrionLib:Destroy()
 --[[
 Name = <string> - The name of the UI.
