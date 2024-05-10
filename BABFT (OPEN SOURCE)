@@ -1,0 +1,177 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/NebulaServicesA/AppleWare/main/orionlib%20modifyed')))()
+local Window = OrionLib:MakeWindow({Name = "Build a Boat For Treasure", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+local Tab = Window:MakeTab({
+	Name = "Main",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+--[[
+Name = <string> - The name of the tab.
+Icon = <string> - The icon of the tab.
+PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
+]]
+Tab:AddToggle({
+	Name = "Auto Farm (Forever)",
+	Default = false,
+	Callback = function(Value)
+		print(Value)
+	end    
+})
+
+--[[
+Name = <string> - The name of the toggle.
+Default = <bool> - The default value of the toggle.
+Callback = <function> - The function of the toggle.
+]]
+Tab:AddSlider({
+	Name = "Walkspeed",
+	Min = 16,
+	Max = 20,
+	Default = 5,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "bananas",
+	Callback = function(Value)
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+	end    
+})
+
+--[[
+Name = <string> - The name of the slider.
+Min = <number> - The minimal value of the slider.
+Max = <number> - The maxium value of the slider.
+Increment = <number> - How much the slider will change value when dragging.
+Default = <number> - The default value of the slider.
+ValueName = <string> - The text after the value number.
+Callback = <function> - The function of the slider.
+]]
+local Tab = Window:MakeTab({
+	Name = "Misc",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+--[[
+Name = <string> - The name of the tab.
+Icon = <string> - The icon of the tab.
+PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
+]]
+Tab:AddButton({
+	Name = "Share Codes (Chat)",
+	Callback = function()
+    OrionLib:MakeNotification({
+	Name = "Sharing Codes",
+	Content = "The Proccess Has Been Started Estimated Time 15 Seconds",
+	Image = "rbxassetid://4483345998",
+	Time = 5
+})
+
+      		    print("This Can Take Up To 15 Seconds")
+    SMR = game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest
+    SMR:FireServer("Here Are Some Codes For All Of You!", "All")
+    SMR:FireServer("Currently There Are 6 Codes.", "All")
+    wait(2.5)
+    SMR:FireServer("Code1: =D", "All")
+    wait(2.5)
+    SMR:FireServer("Code2: =p", "All")
+    wait(2.5)
+    SMR:FireServer("Code3: hi", "All")
+    wait(2.5)
+    SMR:FireServer("Code4: squid army", "All")
+    wait(2.5)
+    SMR:FireServer("Code5: chillthrill709 was here", "All")
+    wait(2.5)
+    SMR:FireServer("Code6: TTTRRREEEAAASSSUUURRREEE", "All")
+    print("Codes Shared")
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]
+Tab:AddButton({
+	Name = "Redeem All Codes",
+	Callback = function()
+      		    RedeemCode = game:GetService("Workspace").CheckCodeFunction
+    RedeemCode:InvokeServer("=D")
+    RedeemCode:InvokeServer("=p")
+    RedeemCode:InvokeServer("hi")
+    RedeemCode:InvokeServer("squid army")
+    RedeemCode:InvokeServer("chillthrill709 was here")
+    RedeemCode:InvokeServer("TTTRRREEEAAASSSUUURRREEE")
+OrionLib:MakeNotification({
+	Name = "Redeemed!",
+	Content = "All Codes Rewards Have Been Given",
+	Image = "rbxassetid://4483345998",
+	Time = 5
+})
+
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]
+local Section = Tab:AddSection({
+	Name = "Character Cheats"
+})
+
+--[[
+Name = <string> - The name of the section.
+]]
+Tab:AddButton({
+	Name = "Water God Mode",
+	Callback = function()
+    OrionLib:MakeNotification({
+	Name = "Water",
+	Content = "Water Will No Longer Damage You!",
+	Image = "rbxassetid://4483345998",
+	Time = 5
+})
+
+
+      		    LocalPlayerName = game:GetService("Players").LocalPlayer.Name
+    LocalPlayerWorkspace = game:GetService("Workspace")[LocalPlayerName]
+    LocalPlayerWorkspace.WaterDetector:Destroy()
+    print("Water Godmode Enabled")
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]
+local Section = Tab:AddSection({
+	Name = "Character Forms"
+})
+
+Tab:AddButton({
+	Name = "Fox Character",
+	Callback = function()
+      		   CC = game:GetService("Workspace").ChangeCharacter
+    CC:FireServer("FoxCharacter")
+    print("Successfully Changed To Fox Character")
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]
+
+Tab:AddButton({
+	Name = "Chicken Character",
+	Callback = function()
+      		    CC = game:GetService("Workspace").ChangeCharacter
+    CC:FireServer("ChickenCharacter")
+    print("Successfully Changed To Chicken Character")
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]
