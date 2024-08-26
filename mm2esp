@@ -1,0 +1,155 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Global toggles
+
+
+-- Function to create ESP
+local function createESP(player)
+    local esp = {
+        box = Drawing.new("Square"),
+        name = Drawing.new("Text"),
+        role = Drawing.new("Text")
+    }
+
+    esp.box.Thickness = 1
+    esp.box.Filled = false
+    esp.box.Color = Color3.new(1, 1, 1)
+    esp.box.Transparency = 0.7
+    esp.box.Visible = false
+
+    esp.name.Size = 14
+    esp.name.Center = true
+    esp.name.Outline = true
+    esp.name.Color = Color3.new(1, 1, 1)
+    esp.name.Visible = false
+
+    esp.role.Size = 14
+    esp.role.Center = true
+    esp.role.Outline = true
+    esp.role.Visible = false
+
+    return esp
+end
+
+-- ESP objects storage
+local espObjects = {}
+
+-- Function to refresh ESP
+local function refreshESP()
+    -- Remove ESP for players who are no longer in the game
+    for player in pairs(espObjects) do
+        if not Players:GetPlayerFromCharacter(player.Character) then
+            for _, drawing in pairs(espObjects[player]) do
+                drawing:Remove()
+            end
+            espObjects[player] = nil
+        end
+    end
+
+    -- Create ESP for new players
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and not espObjects[player] then
+            espObjects[player] = createESP(player)
+        end
+    end
+end
+
+-- Update ESP function
+local function updateESP()
+    for player, esp in pairs(espObjects) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local character = player.Character
+            local hrp = character.HumanoidRootPart
+            local head = character:FindFirstChild("Head")
+
+            -- Update role
+            local hasKnife = character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife")
+            local hasGun = character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
+
+            if hasKnife then
+                esp.role.Text = "Murderer"
+                esp.role.Color = Color3.new(1, 0, 0) -- Red
+            elseif hasGun then
+                esp.role.Text = "Sheriff"
+                esp.role.Color = Color3.new(0, 0, 1) -- Blue
+            else
+                esp.role.Text = "Innocent"
+                esp.role.Color = Color3.new(0, 1, 0) -- Green
+            end
+
+            local rootPos = hrp.Position
+            local headPos = head.Position
+            local footPos = rootPos - Vector3.new(0, 3, 0)  -- Estimate foot position
+
+            local rootPoint = workspace.CurrentCamera:WorldToViewportPoint(rootPos)
+            local headPoint = workspace.CurrentCamera:WorldToViewportPoint(headPos)
+            local footPoint = workspace.CurrentCamera:WorldToViewportPoint(footPos)
+
+            if rootPoint.Z > 0 then
+                local boxSize = Vector2.new(
+                    math.abs(footPoint.Y - headPoint.Y) / 2,
+                    math.abs(footPoint.Y - headPoint.Y)
+                )
+                local boxPosition = Vector2.new(
+                    rootPoint.X - boxSize.X / 2,
+                    rootPoint.Y - boxSize.Y / 2
+                )
+
+                esp.box.Size = boxSize
+                esp.box.Position = boxPosition
+                esp.box.Visible = _G.Boxes and _G.ESP_Enabled
+
+                local textOffsetY = math.abs(footPoint.Y - headPoint.Y) * 0.1
+                local textPositionY = headPoint.Y - textOffsetY
+
+                esp.name.Text = player.Name
+                esp.name.Position = Vector2.new(headPoint.X, textPositionY - 20)
+                esp.name.Visible = _G.Labels and _G.ESP_Enabled
+
+                esp.role.Position = Vector2.new(headPoint.X, textPositionY)
+                esp.role.Visible = _G.Labels and _G.ESP_Enabled
+            else
+                esp.box.Visible = false
+                esp.name.Visible = false
+                esp.role.Visible = false
+            end
+        else
+            esp.box.Visible = false
+            esp.name.Visible = false
+            esp.role.Visible = false
+        end
+    end
+end
+
+-- Rapid refresh loop
+spawn(function()
+    local targetRefreshInterval = 0.0001  -- Target refresh interval in seconds
+    local lastRefreshTime = tick()
+
+    while true do
+        if _G.ESP_Enabled then
+            local currentTime = tick()
+            if currentTime - lastRefreshTime >= targetRefreshInterval then
+                refreshESP()
+                updateESP()
+                lastRefreshTime = currentTime
+            end
+        end
+        RunService.Heartbeat:Wait()
+    end
+end)
+
+-- Functions to toggle ESP features
+function ToggleBoxes()
+    _G.Boxes = not _G.Boxes
+end
+
+function ToggleLabels()
+    _G.Labels = not _G.Labels
+end
+
+function ToggleESP()
+    _G.ESP_Enabled = not _G.ESP_Enabled
+end
