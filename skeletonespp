@@ -1,0 +1,112 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+_G.Skeleton = true  -- Global variable to enable/disable ESP
+
+local ESP = {}
+ESP.Color = Color3.new(1, 1, 1) -- White color
+
+local BoneConnections = {
+    {"Head", "UpperTorso"},
+    {"UpperTorso", "LowerTorso"},
+    
+    {"UpperTorso", "LeftUpperArm"},
+    {"LeftUpperArm", "LeftLowerArm"},
+    {"LeftLowerArm", "LeftHand"},
+    
+    {"UpperTorso", "RightUpperArm"},
+    {"RightUpperArm", "RightLowerArm"},
+    {"RightLowerArm", "RightHand"},
+    
+    {"LowerTorso", "LeftUpperLeg"},
+    {"LeftUpperLeg", "LeftLowerLeg"},
+    {"LeftLowerLeg", "LeftFoot"},
+    
+    {"LowerTorso", "RightUpperLeg"},
+    {"RightUpperLeg", "RightLowerLeg"},
+    {"RightLowerLeg", "RightFoot"}
+}
+
+function ESP:CreateDrawings(player)
+    local drawings = {}
+    
+    for _, connection in ipairs(BoneConnections) do
+        local line = Drawing.new("Line")
+        line.Visible = false
+        line.Color = self.Color
+        line.Thickness = 1
+        line.Transparency = 1
+        drawings[connection[1] .. "-" .. connection[2]] = line
+    end
+    
+    return drawings
+end
+
+function ESP:ToggleESP(player, toggle)
+    if not player.Character then return end
+    
+    if not ESP[player] then
+        ESP[player] = self:CreateDrawings(player)
+    end
+    
+    for _, drawing in pairs(ESP[player]) do
+        drawing.Visible = toggle
+    end
+end
+
+function ESP:RemoveESP(player)
+    if ESP[player] then
+        for _, drawing in pairs(ESP[player]) do
+            drawing:Remove()
+        end
+        ESP[player] = nil
+    end
+end
+
+function ESP:UpdateESP()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            self:ToggleESP(player, _G.Skeleton)
+            
+            if _G.Skeleton then
+                for _, connection in ipairs(BoneConnections) do
+                    local part1 = player.Character:FindFirstChild(connection[1])
+                    local part2 = player.Character:FindFirstChild(connection[2])
+                    
+                    if part1 and part2 then
+                        local point1, visible1 = Camera:WorldToViewportPoint(part1.Position)
+                        local point2, visible2 = Camera:WorldToViewportPoint(part2.Position)
+                        
+                        local drawing = ESP[player][connection[1] .. "-" .. connection[2]]
+                        
+                        if visible1 and visible2 then
+                            drawing.From = Vector2.new(point1.X, point1.Y)
+                            drawing.To = Vector2.new(point2.X, point2.Y)
+                            drawing.Visible = true
+                        else
+                            drawing.Visible = false
+                        end
+                    end
+                end
+            end
+        elseif ESP[player] then
+            self:RemoveESP(player)
+        end
+    end
+end
+
+
+Players.PlayerRemoving:Connect(function(player)
+    ESP:RemoveESP(player)
+end)
+
+
+coroutine.wrap(function()
+    while true do
+        ESP:UpdateESP()
+        wait(0.00000001)  
+    end
+end)()
