@@ -5,7 +5,7 @@ local Camera = workspace.CurrentCamera
 
 _G.Esp = false
 _G.Usernames = false
-_G.Distance = true
+_G.Distance = false
 
 local function createDrawing(class, properties)
     local drawing = Drawing.new(class)
