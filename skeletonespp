@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-_G.Skeleton = true  -- Global variable to enable/disable ESP
+_G.Skeleton = false  -- Global variable to enable/disable ESP
 
 local ESP = {}
 ESP.Color = Color3.new(1, 1, 1) -- White color
