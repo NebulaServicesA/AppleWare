@@ -1,0 +1,85 @@
+-- Initialize global variables
+_G.fly = false
+_G.FlySpeed = 50  -- Default flying speed
+
+-- Create and configure BodyVelocity for flying
+local function setupBodyVelocity(character)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        local bodyVelocity = humanoidRootPart:FindFirstChild("BodyVelocity")
+        if not bodyVelocity then
+            bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Name = "BodyVelocity"
+            bodyVelocity.P = 1250  -- Adjust this value for responsiveness
+            bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)  -- Adjust as needed
+            bodyVelocity.Parent = humanoidRootPart
+        end
+        return bodyVelocity
+    end
+end
+
+-- Update flying mechanics based on player input
+local function onFly()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    local bodyVelocity = setupBodyVelocity(character)
+
+    if character and bodyVelocity then
+        local humanoidRootPart = character.HumanoidRootPart
+        local moveDirection = Vector3.zero
+        local camera = workspace.CurrentCamera
+
+        if _G.fly then
+            -- Get input from the keyboard
+            local moveVector = Vector3.new(
+                (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) and 1 or 0) - (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) and 1 or 0),
+                (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) and 1 or 0) - (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl) and 1 or 0),
+                (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) and 1 or 0) - (game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) and 1 or 0)
+            )
+
+            -- Calculate the direction relative to the camera
+            local cameraCF = camera.CFrame
+            local cameraLookVector = cameraCF.LookVector
+            local cameraRightVector = cameraCF.RightVector
+
+            -- Calculate movement direction with adjustable speed
+            moveDirection = (cameraLookVector * moveVector.Z + cameraRightVector * moveVector.X) * _G.FlySpeed
+            moveDirection = moveDirection + Vector3.new(0, moveVector.Y * _G.FlySpeed, 0)
+
+            -- Apply movement to BodyVelocity
+            bodyVelocity.Velocity = moveDirection
+        else
+            -- Disable flying by setting velocity to zero
+            bodyVelocity.Velocity = Vector3.zero
+        end
+    end
+end
+
+-- Toggle flying on and off
+function toggleFly()
+    _G.fly = not _G.fly
+    print("Fly mode is now " .. (_G.fly and "enabled" or "disabled"))
+end
+
+-- Listen for input to toggle flying
+function setupFlyEvent()
+    local userInputService = game:GetService("UserInputService")
+
+    userInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.F then
+            toggleFly()
+        end
+    end)
+end
+
+-- Main loop to continuously apply flying mechanics
+function mainLoop()
+    while true do
+        wait(0.1)  -- Adjust the wait time for smoothness
+        onFly()
+    end
+end
+
+-- Start the setup and loop
+setupFlyEvent()
+mainLoop()
