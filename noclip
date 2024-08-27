@@ -1,0 +1,33 @@
+-- Initialize _G.Noclip to false
+_G.Noclip = false
+
+-- Toggle noclip mode
+local function toggleNoclip()
+    _G.Noclip = not _G.Noclip
+end
+
+-- Connect a key to toggle noclip (e.g., F key)
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F then
+        toggleNoclip()
+    end
+end)
+
+-- Continuous loop to apply or remove noclip effect
+game:GetService("RunService").RenderStepped:Connect(function()
+    local player = game.Players.LocalPlayer
+    if player and player.Character then
+        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            humanoidRootPart.CanCollide = not _G.Noclip
+            
+            -- Optional: Disable collision for all parts of the character
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = not _G.Noclip
+                end
+            end
+        end
+    end
+end)
