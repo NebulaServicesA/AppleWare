@@ -1,0 +1,47 @@
+-- Initialize global variables
+_G.Spiny = false
+_G.SpinySpeed = 100  -- Default spinning speed (degrees per second)
+
+-- Update spinning mechanics based on the global variables
+local function onSpin()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if character and _G.Spiny then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            -- Calculate the spinning rotation
+            local spinSpeed = _G.SpinySpeed * math.pi / 180  -- Convert degrees to radians
+            local currentCF = humanoidRootPart.CFrame
+            humanoidRootPart.CFrame = currentCF * CFrame.Angles(0, spinSpeed * 0.1, 0)
+        end
+    end
+end
+
+-- Toggle spinning on and off
+function toggleSpin()
+    _G.Spiny = not _G.Spiny
+    print("Spin mode is now " .. (_G.Spiny and "enabled" or "disabled"))
+end
+
+-- Listen for input to toggle spinning
+function setupSpinEvent()
+    local userInputService = game:GetService("UserInputService")
+
+    userInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.E then
+            toggleSpin()
+        end
+    end)
+end
+
+-- Main loop to continuously apply spinning mechanics
+function mainLoop()
+    while true do
+        wait(0.1)  -- Adjust the wait time for smoothness
+        onSpin()
+    end
+end
+
+-- Start the setup and loop
+setupSpinEvent()
+mainLoop()
