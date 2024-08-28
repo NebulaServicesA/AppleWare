@@ -12,6 +12,7 @@ _G.FOVRadius = 200 -- FOV radius in pixels
 _G.Teamcheck = false -- Enable/disable team check
 _G.WallCheck = false -- Enable/disable wall check
 _G.ShowCircle = false
+
 -- Keybind options
 local KeybindOptions = {
     "MouseButton2", -- Right Mouse Button
@@ -43,8 +44,6 @@ local AimbotPartOptions = {
     "RightFoot"
 }
 
-
-
 -- Create FOV circle (visualization)
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Visible = true
@@ -58,7 +57,7 @@ FOVCircle.Radius = _G.FOVRadius
 local function updateFOVCircle()
     FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
     FOVCircle.Visible = _G.ShowCircle
-FOVCircle.Radius = _G.FOVRadius
+    FOVCircle.Radius = _G.FOVRadius
 end
 
 local function toggleFOVCircle()
@@ -87,10 +86,10 @@ local function isVisible(targetPart)
     local rayOrigin = Camera.CFrame.Position
     local rayDirection = (targetPart.Position - rayOrigin).Unit
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character, targetPart.Parent}
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
-    local raycastResult = workspace:Raycast(rayOrigin, rayDirection * 1000, raycastParams)
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection * (targetPart.Position - rayOrigin).Magnitude, raycastParams)
     return raycastResult == nil or raycastResult.Instance:IsDescendantOf(targetPart.Parent)
 end
 
