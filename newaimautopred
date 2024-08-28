@@ -10,7 +10,7 @@ _G.LockonPart = "Head" -- Default aimbot part
 _G.Prediction = false
 _G.FOVRadius = 200 -- FOV radius in pixels
 _G.Teamcheck = false -- Enable/disable team check
-_G.WallCheck = false -- Enable/disable wall check
+_G.WallCheck = true -- Enable/disable wall check
 _G.ShowCircle = false
 
 -- Keybind options
@@ -60,11 +60,6 @@ local function updateFOVCircle()
     FOVCircle.Radius = _G.FOVRadius
 end
 
-local function toggleFOVCircle()
-    _G.ShowCircle = not _G.ShowCircle
-    print("FOV Circle visibility toggled:", _G.ShowCircle)
-end
-
 local function isWithinFOV(position)
     local screenPosition, onScreen = Camera:WorldToScreenPoint(position)
     if not onScreen then return false end
@@ -90,9 +85,12 @@ local function isVisible(targetPart)
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
     local raycastResult = workspace:Raycast(rayOrigin, rayDirection * (targetPart.Position - rayOrigin).Magnitude, raycastParams)
-    local isVisible = raycastResult == nil or raycastResult.Instance:IsDescendantOf(targetPart.Parent)
-    print("Visibility check for", targetPart, ":", isVisible)
-    return isVisible
+    
+    if raycastResult then
+        return raycastResult.Instance:IsDescendantOf(targetPart.Parent)
+    else
+        return true -- No obstruction found
+    end
 end
 
 local function getTargetPart(character)
@@ -117,7 +115,6 @@ local function getClosestPlayer()
             if targetPart then
                 local inFOV = isWithinFOV(targetPart.Position)
                 local visible = isVisible(targetPart)
-                print("Player:", player.Name, "In FOV:", inFOV, "Visible:", visible)
                 
                 if inFOV and visible and not isTeamMate(player) then
                     local pos = Camera:WorldToViewportPoint(targetPart.Position)
@@ -132,7 +129,6 @@ local function getClosestPlayer()
         end
     end
 
-    print("Closest player:", closestPlayer and closestPlayer.Name or "None")
     return closestPlayer
 end
 
