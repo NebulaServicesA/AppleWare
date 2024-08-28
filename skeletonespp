@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- Global variables to enable/disable ESP features and transparency settings
+
 _G.Skeleton = false
 _G.HeadESP = false
 _G.Transparency = 1 -- Transparency for Skeleton lines
@@ -131,7 +131,7 @@ function ESP:UpdateESP()
                 end
             end
             
-            -- Update Head ESP
+
             if _G.HeadESP then
                 local head = parts["Head"]
                 if head then
@@ -152,7 +152,7 @@ function ESP:UpdateESP()
     end
 end
 
--- Handle players joining the game
+
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
         wait(1) -- Wait for the character to fully load
@@ -165,7 +165,7 @@ Players.PlayerAdded:Connect(function(player)
     end)
 end)
 
--- Handle existing players
+
 for _, player in ipairs(Players:GetPlayers()) do
     if player ~= LocalPlayer then
         if player.Character then
@@ -194,7 +194,7 @@ RunService:BindToRenderStep("EnhancedESP", Enum.RenderPriority.Camera.Value, fun
     ESP:UpdateESP()
 end)
 
--- Handling global variables changes
+
 spawn(function()
     while true do
         wait(0.1)
