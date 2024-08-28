@@ -80,15 +80,16 @@ local function isVisible(targetPart)
 
     local rayOrigin = Camera.CFrame.Position
     local rayDirection = (targetPart.Position - rayOrigin).Unit
+    local distance = (targetPart.Position - rayOrigin).Magnitude
+
     local raycastParams = RaycastParams.new()
     raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
-    -- The raycast should be from the camera to the target part
-    local raycastResult = workspace:Raycast(rayOrigin, rayDirection * (targetPart.Position - rayOrigin).Magnitude, raycastParams)
-    
-    -- Check if the raycast hits something other than the targetPart
-    return not raycastResult or raycastResult.Instance == targetPart
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection * distance, raycastParams)
+
+    -- Check if the raycast result is either nil (no obstruction) or if it hit the target part
+    return not raycastResult or raycastResult.Instance:IsDescendantOf(targetPart.Parent)
 end
 
 local function getTargetPart(character)
