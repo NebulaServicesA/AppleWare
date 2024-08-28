@@ -12,6 +12,24 @@ _G.FOVRadius = 200 -- FOV radius in pixels
 _G.Teamcheck = false -- Enable/disable team check
 _G.WallCheck = false -- Enable/disable wall check
 
+-- Keybind options
+local KeybindOptions = {
+    "MouseButton2", -- Right Mouse Button
+    "E",
+    "Q",
+    "LeftControl",
+    "LeftAlt",
+    "MouseButton1",
+    "LeftShift",
+    "C",
+    "X",
+    "F"
+}
+
+_G.SelectedKeybind = "MouseButton2" -- Default keybind
+
+-- Assuming you have a Tab object from your UI library
+
 -- Create FOV circle (visualization)
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Visible = true
@@ -101,9 +119,20 @@ local function aimAt(player)
     end
 end
 
+local function isKeybindActive()
+    if _G.SelectedKeybind == "MouseButton2" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+    elseif _G.SelectedKeybind == "MouseButton1" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+    else
+        local keyCode = Enum.KeyCode[_G.SelectedKeybind]
+        return keyCode and UserInputService:IsKeyDown(keyCode)
+    end
+end
+
 RunService.RenderStepped:Connect(function()
     updateFOVCircle()
-    if _G.lock and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+    if _G.lock and isKeybindActive() then
         local target = getClosestPlayer()
         if target then
             aimAt(target)
