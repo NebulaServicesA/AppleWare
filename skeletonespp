@@ -50,15 +50,6 @@ function ESP:RemovePlayer(player)
     end
 end
 
-function ESP:ToggleESP()
-    for _, playerData in pairs(self.Players) do
-        for _, drawing in pairs(playerData.Drawings.Skeleton) do
-            drawing.Visible = _G.Skeleton
-        end
-        playerData.Drawings.Head.Visible = _G.HeadESP
-    end
-end
-
 function ESP:UpdateESP()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -73,37 +64,33 @@ function ESP:UpdateESP()
             local parts = getModelParts(player.Character)
             
             -- Update Skeleton ESP
-            if _G.Skeleton then
-                for _, connection in ipairs(playerData.Connections) do
-                    local part1, part2 = parts[connection[1]], parts[connection[2]]
-                    local drawing = playerData.Drawings.Skeleton[connection[1] .. "-" .. connection[2]]
+            for _, connection in ipairs(playerData.Connections) do
+                local part1, part2 = parts[connection[1]], parts[connection[2]]
+                local drawing = playerData.Drawings.Skeleton[connection[1] .. "-" .. connection[2]]
+                
+                if part1 and part2 and drawing then
+                    local point1, visible1 = Camera:WorldToViewportPoint(part1.Position)
+                    local point2, visible2 = Camera:WorldToViewportPoint(part2.Position)
                     
-                    if part1 and part2 and drawing then
-                        local point1, visible1 = Camera:WorldToViewportPoint(part1.Position)
-                        local point2, visible2 = Camera:WorldToViewportPoint(part2.Position)
-                        
-                        if visible1 and visible2 then
-                            drawing.From = Vector2.new(point1.X, point1.Y)
-                            drawing.To = Vector2.new(point2.X, point2.Y)
-                            drawing.Visible = true
-                        else
-                            drawing.Visible = false
-                        end
+                    if visible1 and visible2 and _G.Skeleton then
+                        drawing.From = Vector2.new(point1.X, point1.Y)
+                        drawing.To = Vector2.new(point2.X, point2.Y)
+                        drawing.Visible = true
+                    else
+                        drawing.Visible = false
                     end
                 end
             end
             
             -- Update Head ESP
-            if _G.HeadESP then
-                local head = parts["Head"]
-                if head then
-                    local headPos, visible = Camera:WorldToViewportPoint(head.Position)
-                    if visible then
-                        playerData.Drawings.Head.Position = Vector2.new(headPos.X, headPos.Y)
-                        playerData.Drawings.Head.Visible = true
-                    else
-                        playerData.Drawings.Head.Visible = false
-                    end
+            local head = parts["Head"]
+            if head then
+                local headPos, visible = Camera:WorldToViewportPoint(head.Position)
+                if visible and _G.HeadESP then
+                    playerData.Drawings.Head.Position = Vector2.new(headPos.X, headPos.Y)
+                    playerData.Drawings.Head.Visible = true
+                else
+                    playerData.Drawings.Head.Visible = false
                 end
             end
         elseif self.Players[player] then
@@ -122,16 +109,19 @@ RunService:BindToRenderStep("EnhancedESP", Enum.RenderPriority.Camera.Value, fun
     ESP:UpdateESP()
 end)
 
--- Function to toggle ESP
-function ToggleESP()
-    ESP:ToggleESP()
+-- Functions to toggle ESP
+function ToggleSkeletonESP()
+    _G.Skeleton = not _G.Skeleton
+    for _, playerData in pairs(ESP.Players) do
+        for _, drawing in pairs(playerData.Drawings.Skeleton) do
+            drawing.Visible = false  -- Reset visibility
+        end
+    end
 end
 
--- Example usage:
--- To toggle Skeleton ESP: 
--- _G.Skeleton = not _G.Skeleton
--- ToggleESP()
-
--- To toggle Head ESP:
--- _G.HeadESP = not _G.HeadESP
--- ToggleESP()
+function ToggleHeadESP()
+    _G.HeadESP = not _G.HeadESP
+    for _, playerData in pairs(ESP.Players) do
+        playerData.Drawings.Head.Visible = false  -- Reset visibility
+    end
+end
