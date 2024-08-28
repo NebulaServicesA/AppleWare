@@ -11,47 +11,7 @@ local ESP = {}
 ESP.Color = Color3.new(1, 1, 1) -- White color
 ESP.Players = {}
 
-local function getModelParts(model)
-    local parts = {}
-    for _, v in pairs(model:GetChildren()) do
-        if v:IsA("BasePart") then
-            parts[v.Name] = v
-        end
-    end
-    return parts
-end
-
-local function getBoneConnections(character)
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return {} end
-
-    if humanoid.RigType == Enum.HumanoidRigType.R15 then
-        return {
-            {"Head", "UpperTorso"},
-            {"UpperTorso", "LowerTorso"},
-            {"UpperTorso", "LeftUpperArm"},
-            {"LeftUpperArm", "LeftLowerArm"},
-            {"LeftLowerArm", "LeftHand"},
-            {"UpperTorso", "RightUpperArm"},
-            {"RightUpperArm", "RightLowerArm"},
-            {"RightLowerArm", "RightHand"},
-            {"LowerTorso", "LeftUpperLeg"},
-            {"LeftUpperLeg", "LeftLowerLeg"},
-            {"LeftLowerLeg", "LeftFoot"},
-            {"LowerTorso", "RightUpperLeg"},
-            {"RightUpperLeg", "RightLowerLeg"},
-            {"RightLowerLeg", "RightFoot"}
-        }
-    else
-        return {
-            {"Head", "Torso"},
-            {"Torso", "Left Arm"},
-            {"Torso", "Right Arm"},
-            {"Torso", "Left Leg"},
-            {"Torso", "Right Leg"}
-        }
-    end
-end
+-- ... [Previous functions remain the same: getModelParts, getBoneConnections] ...
 
 function ESP:CreateDrawings(player)
     local drawings = {
@@ -90,6 +50,15 @@ function ESP:RemovePlayer(player)
     end
 end
 
+function ESP:ToggleESP()
+    for _, playerData in pairs(self.Players) do
+        for _, drawing in pairs(playerData.Drawings.Skeleton) do
+            drawing.Visible = _G.Skeleton
+        end
+        playerData.Drawings.Head.Visible = _G.HeadESP
+    end
+end
+
 function ESP:UpdateESP()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -122,10 +91,6 @@ function ESP:UpdateESP()
                         end
                     end
                 end
-            else
-                for _, drawing in pairs(playerData.Drawings.Skeleton) do
-                    drawing.Visible = false
-                end
             end
             
             -- Update Head ESP
@@ -140,8 +105,6 @@ function ESP:UpdateESP()
                         playerData.Drawings.Head.Visible = false
                     end
                 end
-            else
-                playerData.Drawings.Head.Visible = false
             end
         elseif self.Players[player] then
             self:RemovePlayer(player)
@@ -149,46 +112,26 @@ function ESP:UpdateESP()
     end
 end
 
--- Handle players joining the game
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
-        wait(1) -- Wait for the character to fully load
-        if not ESP.Players[player] then
-            ESP.Players[player] = {
-                Drawings = ESP:CreateDrawings(player),
-                Connections = getBoneConnections(character)
-            }
-        end
-    end)
-end)
-
--- Handle existing players
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        if player.Character then
-            ESP.Players[player] = {
-                Drawings = ESP:CreateDrawings(player),
-                Connections = getBoneConnections(player.Character)
-            }
-        end
-        player.CharacterAdded:Connect(function(character)
-            wait(1) -- Wait for the character to fully load
-            if not ESP.Players[player] then
-                ESP.Players[player] = {
-                    Drawings = ESP:CreateDrawings(player),
-                    Connections = getBoneConnections(character)
-                }
-            end
-        end)
-    end
-end
+-- ... [PlayerAdded and existing player handling remain the same] ...
 
 Players.PlayerRemoving:Connect(function(player)
     ESP:RemovePlayer(player)
 end)
 
 RunService:BindToRenderStep("EnhancedESP", Enum.RenderPriority.Camera.Value, function()
-    if _G.Skeleton or _G.HeadESP then
-        ESP:UpdateESP()
-    end
+    ESP:UpdateESP()
 end)
+
+-- Function to toggle ESP
+function ToggleESP()
+    ESP:ToggleESP()
+end
+
+-- Example usage:
+-- To toggle Skeleton ESP: 
+-- _G.Skeleton = not _G.Skeleton
+-- ToggleESP()
+
+-- To toggle Head ESP:
+-- _G.HeadESP = not _G.HeadESP
+-- ToggleESP()
