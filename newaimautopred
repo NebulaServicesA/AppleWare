@@ -1,1 +1,193 @@
-local UserInputService = game:GetService("UserInputService") local RunService = game:GetService("RunService") local Players = game:GetService("Players") local Camera = workspace.CurrentCamera local LocalPlayer = Players.LocalPlayer _G.lock = false _G.Smoothness = 0.2 _G.LockonPart = "Head" -- Default aimbot part _G.Prediction = false _G.FOVRadius = 200 -- FOV radius in pixels _G.Teamcheck = false -- Enable/disable team check _G.WallCheck = false -- Enable/disable wall check _G.ShowCircle = false -- Keybind options local KeybindOptions = { "MouseButton2", -- Right Mouse Button "MouseButton1", -- Left Mouse Button "E", "Q", "LeftControl", "LeftAlt", "LeftShift", "C", "X", "F" } _G.SelectedKeybind = "MouseButton2" -- Default keybind -- Aimbot Part options (adjusted for both R6 and R15) local AimbotPartOptions = { "Head", "HumanoidRootPart", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "LeftHand", "RightHand", "LeftFoot", "RightFoot" } -- Create FOV circle (visualization) local FOVCircle = Drawing.new("Circle") FOVCircle.Visible = true FOVCircle.Thickness = 1 FOVCircle.Color = Color3.new(1, 1, 1) FOVCircle.Filled = false FOVCircle.Transparency = 1 FOVCircle.NumSides = 100 FOVCircle.Radius = _G.FOVRadius local function updateFOVCircle() FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2) FOVCircle.Visible = _G.ShowCircle FOVCircle.Radius = _G.FOVRadius end local function toggleFOVCircle() _G.ShowCircle = not _G.ShowCircle print("FOV Circle visibility toggled:", _G.ShowCircle) end local function isWithinFOV(position) local screenPosition, onScreen = Camera:WorldToScreenPoint(position) if not onScreen then return false end local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2) return (Vector2.new(screenPosition.X, screenPosition.Y) - centerScreen).Magnitude <= _G.FOVRadius end local function isTeamMate(player) if _G.Teamcheck then return player.Team == LocalPlayer.Team end return false end local function isVisible(targetPart) if not _G.WallCheck then return true end local rayOrigin = Camera.CFrame.Position local rayDirection = (targetPart.Position - rayOrigin).Unit local raycastParams = RaycastParams.new() raycastParams.FilterDescendantsInstances = {LocalPlayer.Character, targetPart.Parent} raycastParams.FilterType = Enum.RaycastFilterType.Blacklist local raycastResult = workspace:Raycast(rayOrigin, rayDirection * 1000, raycastParams) return raycastResult == nil or raycastResult.Instance:IsDescendantOf(targetPart.Parent) end local function getTargetPart(character) if _G.LockonPart == "Random" then local parts = {"Head", "HumanoidRootPart", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"} return character:FindFirstChild(parts[math.random(#parts)]) else return character:FindFirstChild(_G.LockonPart) or character:FindFirstChild("UpperTorso") or character:FindFirstChild("LowerTorso") or character:FindFirstChild("HumanoidRootPart") end end local function getClosestPlayer() local closestPlayer = nil local shortestDistance = math.huge for _, player in pairs(Players:GetPlayers()) do if player ~= LocalPlayer and player.Character and not isTeamMate(player) then local targetPart = getTargetPart(player.Character) if targetPart and isWithinFOV(targetPart.Position) and isVisible(targetPart) then local pos = Camera:WorldToViewportPoint(targetPart.Position) local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)).magnitude if magnitude < shortestDistance then closestPlayer = player shortestDistance = magnitude end end end end return closestPlayer end local function calculatePrediction(targetPart) local targetPos = targetPart.Position local targetVel = targetPart.Velocity local cameraCFrame = Camera.CFrame local distance = (targetPos - cameraCFrame.Position).Magnitude local timeToHit = distance / 1000 -- Assuming projectile speed of 1000 studs/second, adjust as needed return targetPos + (targetVel * timeToHit) end local function aimAt(player) if player.Character then local targetPart = getTargetPart(player.Character) if targetPart then local targetPos = targetPart.Position if _G.Prediction then targetPos = calculatePrediction(targetPart) end local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos) Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, _G.Smoothness) end end end local function isKeybindActive() if _G.SelectedKeybind == "MouseButton2" then return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) elseif _G.SelectedKeybind == "MouseButton1" then return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) else local keyCode = Enum.KeyCode[_G.SelectedKeybind] return keyCode and UserInputService:IsKeyDown(keyCode) end end RunService.RenderStepped:Connect(function() updateFOVCircle() if _G.lock and isKeybindActive() then local target = getClosestPlayer() if target then aimAt(target) end end end) -- Optional: Add key binding to toggle lock UserInputService.InputBegan:Connect(function(input, gameProcessed) if not gameProcessed and input.KeyCode == Enum.KeyCode.X then -- Change 'X' to your preferred key _G.lock = not _G.lock print("Lock toggled:", _G.lock) end end)
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+_G.lock = false
+_G.Smoothness = 0.2
+_G.LockonPart = "Head" -- Default aimbot part
+_G.Prediction = false
+_G.FOVRadius = 200 -- FOV radius in pixels
+_G.Teamcheck = false -- Enable/disable team check
+_G.WallCheck = false -- Enable/disable wall check
+_G.ShowCircle = false
+
+-- Keybind options
+local KeybindOptions = {
+    "MouseButton2", -- Right Mouse Button
+    "MouseButton1", -- Left Mouse Button
+    "E",
+    "Q",
+    "LeftControl",
+    "LeftAlt",
+    "LeftShift",
+    "C",
+    "X",
+    "F"
+}
+
+_G.SelectedKeybind = "MouseButton2" -- Default keybind
+
+-- Aimbot Part options (adjusted for both R6 and R15)
+local AimbotPartOptions = {
+    "Head",
+    "HumanoidRootPart",
+    "Torso",
+    "Left Arm",
+    "Right Arm",
+    "Left Leg",
+    "Right Leg",
+    "LeftHand",
+    "RightHand",
+    "LeftFoot",
+    "RightFoot"
+}
+
+-- Create FOV circle (visualization)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Visible = true
+FOVCircle.Thickness = 1
+FOVCircle.Color = Color3.new(1, 1, 1)
+FOVCircle.Filled = false
+FOVCircle.Transparency = 1
+FOVCircle.NumSides = 100
+FOVCircle.Radius = _G.FOVRadius
+
+local function updateFOVCircle()
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    FOVCircle.Visible = _G.ShowCircle
+    FOVCircle.Radius = _G.FOVRadius
+end
+
+local function toggleFOVCircle()
+    _G.ShowCircle = not _G.ShowCircle
+    print("FOV Circle visibility toggled:", _G.ShowCircle)
+end
+
+local function isWithinFOV(position)
+    local screenPosition, onScreen = Camera:WorldToScreenPoint(position)
+    if not onScreen then return false end
+
+    local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    return (Vector2.new(screenPosition.X, screenPosition.Y) - centerScreen).Magnitude <= _G.FOVRadius
+end
+
+local function isTeamMate(player)
+    if _G.Teamcheck then
+        return player.Team == LocalPlayer.Team
+    end
+    return false
+end
+
+local function isVisible(targetPart)
+    if not _G.WallCheck then return true end
+
+    local rayOrigin = Camera.CFrame.Position
+    local rayDirection = (targetPart.Position - rayOrigin).Unit
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection * (targetPart.Position - rayOrigin).Magnitude, raycastParams)
+    local isVisible = raycastResult == nil or raycastResult.Instance:IsDescendantOf(targetPart.Parent)
+    print("Visibility check for", targetPart, ":", isVisible)
+    return isVisible
+end
+
+local function getTargetPart(character)
+    if _G.LockonPart == "Random" then
+        local parts = {"Head", "HumanoidRootPart", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+        return character:FindFirstChild(parts[math.random(#parts)])
+    else
+        return character:FindFirstChild(_G.LockonPart) or 
+               character:FindFirstChild("UpperTorso") or 
+               character:FindFirstChild("LowerTorso") or 
+               character:FindFirstChild("HumanoidRootPart")
+    end
+end
+
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local targetPart = getTargetPart(player.Character)
+            if targetPart then
+                local inFOV = isWithinFOV(targetPart.Position)
+                local visible = isVisible(targetPart)
+                print("Player:", player.Name, "In FOV:", inFOV, "Visible:", visible)
+                
+                if inFOV and visible and not isTeamMate(player) then
+                    local pos = Camera:WorldToViewportPoint(targetPart.Position)
+                    local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)).magnitude
+
+                    if magnitude < shortestDistance then
+                        closestPlayer = player
+                        shortestDistance = magnitude
+                    end
+                end
+            end
+        end
+    end
+
+    print("Closest player:", closestPlayer and closestPlayer.Name or "None")
+    return closestPlayer
+end
+
+local function calculatePrediction(targetPart)
+    local targetPos = targetPart.Position
+    local targetVel = targetPart.Velocity
+    local cameraCFrame = Camera.CFrame
+
+    local distance = (targetPos - cameraCFrame.Position).Magnitude
+    local timeToHit = distance / 1000 -- Assuming projectile speed of 1000 studs/second, adjust as needed
+
+    return targetPos + (targetVel * timeToHit)
+end
+
+local function aimAt(player)
+    if player.Character then
+        local targetPart = getTargetPart(player.Character)
+        if targetPart then
+            local targetPos = targetPart.Position
+            
+            if _G.Prediction then
+                targetPos = calculatePrediction(targetPart)
+            end
+            
+            local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, _G.Smoothness)
+        end
+    end
+end
+
+local function isKeybindActive()
+    if _G.SelectedKeybind == "MouseButton2" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+    elseif _G.SelectedKeybind == "MouseButton1" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+    else
+        local keyCode = Enum.KeyCode[_G.SelectedKeybind]
+        return keyCode and UserInputService:IsKeyDown(keyCode)
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    updateFOVCircle()
+    if _G.lock and isKeybindActive() then
+        local target = getClosestPlayer()
+        if target then
+            aimAt(target)
+        end
+    end
+end)
+
+-- Optional: Add key binding to toggle lock
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.X then -- Change 'X' to your preferred key
+        _G.lock = not _G.lock
+        print("Lock toggled:", _G.lock)
+    end
+end)
