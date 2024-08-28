@@ -10,7 +10,7 @@ _G.LockonPart = "Head" -- Default aimbot part
 _G.Prediction = false
 _G.FOVRadius = 200 -- FOV radius in pixels
 _G.Teamcheck = false -- Enable/disable team check
-_G.WallCheck = true -- Enable/disable wall check
+_G.WallCheck = false -- Enable/disable wall check
 _G.ShowCircle = false
 
 -- Keybind options
@@ -86,11 +86,13 @@ local function isVisible(targetPart)
 
     local raycastResult = workspace:Raycast(rayOrigin, rayDirection * (targetPart.Position - rayOrigin).Magnitude, raycastParams)
     
-    if raycastResult then
-        return raycastResult.Instance:IsDescendantOf(targetPart.Parent)
-    else
-        return true -- No obstruction found
+    -- If raycastResult is nil, it means there's no obstruction
+    if raycastResult == nil then
+        return true
     end
+    
+    -- If raycastResult.Instance is not the targetPart, it means something is blocking the line of sight
+    return raycastResult.Instance == targetPart
 end
 
 local function getTargetPart(character)
