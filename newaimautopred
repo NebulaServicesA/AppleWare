@@ -58,6 +58,7 @@ FOVCircle.Radius = _G.FOVRadius
 local function updateFOVCircle()
     FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
     FOVCircle.Visible = _G.ShowCircle
+FOVCircle.Radius = _G.FOVRadius
 end
 
 local function toggleFOVCircle()
