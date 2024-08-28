@@ -5,7 +5,7 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
 _G.lock = false
-_G.Smoothness = 0.1
+_G.Smoothness = 0.2
 _G.LockonPart = "Head" -- Default aimbot part
 _G.Prediction = false
 _G.FOVRadius = 200 -- FOV radius in pixels
