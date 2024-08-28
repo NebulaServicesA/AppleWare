@@ -56,17 +56,46 @@ local AimbotPartOptions = {
 -- Assuming you have a Tab object from your UI library
 
 
--- ... (rest of your existing functions remain the same)
+-- Create FOV circle (visualization)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Visible = true
+FOVCircle.Thickness = 1
+FOVCircle.Color = Color3.new(1, 1, 1)
+FOVCircle.Filled = false
+FOVCircle.Transparency = 1
+FOVCircle.NumSides = 100
+FOVCircle.Radius = _G.FOVRadius
 
-local function isKeybindActive()
-    if _G.SelectedKeybind == "MouseButton2" then
-        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
-    elseif _G.SelectedKeybind == "MouseButton1" then
-        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-    else
-        local keyCode = Enum.KeyCode[_G.SelectedKeybind]
-        return keyCode and UserInputService:IsKeyDown(keyCode)
+local function updateFOVCircle()
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+end
+
+local function isWithinFOV(position)
+    local screenPosition, onScreen = Camera:WorldToScreenPoint(position)
+    if not onScreen then return false end
+
+    local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    return (Vector2.new(screenPosition.X, screenPosition.Y) - centerScreen).Magnitude <= _G.FOVRadius
+end
+
+local function isTeamMate(player)
+    if _G.Teamcheck then
+        return player.Team == LocalPlayer.Team
     end
+    return false
+end
+
+local function isVisible(targetPart)
+    if not _G.WallCheck then return true end
+
+    local rayOrigin = Camera.CFrame.Position
+    local rayDirection = (targetPart.Position - rayOrigin).Unit
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character, targetPart.Parent}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection * 1000, raycastParams)
+    return raycastResult == nil or raycastResult.Instance:IsDescendantOf(targetPart.Parent)
 end
 
 local function getClosestPlayer()
@@ -89,6 +118,42 @@ local function getClosestPlayer()
     end
 
     return closestPlayer
+end
+
+local function calculatePrediction(targetPart)
+    local targetPos = targetPart.Position
+    local targetVel = targetPart.Velocity
+    local cameraCFrame = Camera.CFrame
+
+    local distance = (targetPos - cameraCFrame.Position).Magnitude
+    local timeToHit = distance / 1000 -- Assuming projectile speed of 1000 studs/second, adjust as needed
+
+    return targetPos + (targetVel * timeToHit)
+end
+
+local function aimAt(player)
+    if player.Character and player.Character:FindFirstChild(_G.LockonPart) then
+        local targetPart = player.Character[_G.LockonPart]
+        local targetPos = targetPart.Position
+        
+        if _G.Prediction then
+            targetPos = calculatePrediction(targetPart)
+        end
+        
+        local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+        Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, _G.Smoothness)
+    end
+end
+
+local function isKeybindActive()
+    if _G.SelectedKeybind == "MouseButton2" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+    elseif _G.SelectedKeybind == "MouseButton1" then
+        return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+    else
+        local keyCode = Enum.KeyCode[_G.SelectedKeybind]
+        return keyCode and UserInputService:IsKeyDown(keyCode)
+    end
 end
 
 RunService.RenderStepped:Connect(function()
