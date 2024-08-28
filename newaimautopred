@@ -28,7 +28,7 @@ local KeybindOptions = {
 
 _G.SelectedKeybind = "MouseButton2" -- Default keybind
 
--- Aimbot Part options (expanded list)
+-- Aimbot Part options (adjusted for both R6 and R15)
 local AimbotPartOptions = {
     "Head",
     "HumanoidRootPart",
@@ -40,20 +40,9 @@ local AimbotPartOptions = {
     "LeftHand",
     "RightHand",
     "LeftFoot",
-    "RightFoot",
-    "UpperTorso",
-    "LowerTorso",
-    "LeftUpperArm",
-    "RightUpperArm",
-    "LeftLowerArm",
-    "RightLowerArm",
-    "LeftUpperLeg",
-    "RightUpperLeg",
-    "LeftLowerLeg",
-    "RightLowerLeg"
+    "RightFoot"
 }
 
--- Assuming you have a Tab object from your UI library
 
 
 -- Create FOV circle (visualization)
@@ -98,13 +87,25 @@ local function isVisible(targetPart)
     return raycastResult == nil or raycastResult.Instance:IsDescendantOf(targetPart.Parent)
 end
 
+local function getTargetPart(character)
+    if _G.LockonPart == "Random" then
+        local parts = {"Head", "HumanoidRootPart", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+        return character:FindFirstChild(parts[math.random(#parts)])
+    else
+        return character:FindFirstChild(_G.LockonPart) or 
+               character:FindFirstChild("UpperTorso") or 
+               character:FindFirstChild("LowerTorso") or 
+               character:FindFirstChild("HumanoidRootPart")
+    end
+end
+
 local function getClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
 
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(_G.LockonPart) and not isTeamMate(player) then
-            local targetPart = player.Character:FindFirstChild(_G.LockonPart)
+        if player ~= LocalPlayer and player.Character and not isTeamMate(player) then
+            local targetPart = getTargetPart(player.Character)
             if targetPart and isWithinFOV(targetPart.Position) and isVisible(targetPart) then
                 local pos = Camera:WorldToViewportPoint(targetPart.Position)
                 local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)).magnitude
@@ -132,16 +133,18 @@ local function calculatePrediction(targetPart)
 end
 
 local function aimAt(player)
-    if player.Character and player.Character:FindFirstChild(_G.LockonPart) then
-        local targetPart = player.Character[_G.LockonPart]
-        local targetPos = targetPart.Position
-        
-        if _G.Prediction then
-            targetPos = calculatePrediction(targetPart)
+    if player.Character then
+        local targetPart = getTargetPart(player.Character)
+        if targetPart then
+            local targetPos = targetPart.Position
+            
+            if _G.Prediction then
+                targetPos = calculatePrediction(targetPart)
+            end
+            
+            local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, _G.Smoothness)
         end
-        
-        local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos)
-        Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, _G.Smoothness)
     end
 end
 
