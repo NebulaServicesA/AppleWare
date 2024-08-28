@@ -57,6 +57,12 @@ FOVCircle.Radius = _G.FOVRadius
 
 local function updateFOVCircle()
     FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    FOVCircle.Visible = _G.ShowCircle
+end
+
+local function toggleFOVCircle()
+    _G.ShowCircle = not _G.ShowCircle
+    print("FOV Circle visibility toggled:", _G.ShowCircle)
 end
 
 local function isWithinFOV(position)
