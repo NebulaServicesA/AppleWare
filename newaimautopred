@@ -11,7 +11,7 @@ _G.Prediction = false
 _G.FOVRadius = 200 -- FOV radius in pixels
 _G.Teamcheck = false -- Enable/disable team check
 _G.WallCheck = false -- Enable/disable wall check
-
+_G.ShowCircle = false
 -- Keybind options
 local KeybindOptions = {
     "MouseButton2", -- Right Mouse Button
